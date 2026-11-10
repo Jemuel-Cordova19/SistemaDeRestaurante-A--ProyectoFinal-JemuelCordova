@@ -1,22 +1,20 @@
 #include <iostream>
 #include <string>
-#include <fstream> // para generar el archivo de cada cuenta
-#include <cstdlib> // para limpiar con sistem
-#include <ctime> // para los 15segundos
+#include <fstream>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 
-const int PRODUCTOS=6;
-const int MESAS=6;
-const int MAXORDENES=200;
-const int USUARIOS=3;
+// tamanos de los arreglos (constantes porque el tamano de un arreglo no puede cambiar)
+const int PRODUCTOS=6; // cantidad de productos del menu
+const int MESAS=6; // cantidad de mesas del restaurante
+const int MAXORDENES=200; // maximo de ordenes que caben en la cola de cocina
+const int USUARIOS=3; // cantidad de usuarios del sistema (admin, mesero y cocinero)
 
-//   usuario    contrasena    contrasena cifrada
-//   admin      admin123      7d04nURC
-//   mesero     mesero123     05s529URC
-//   cocinero   cocinero123   3934n529URC
+
 string nombreUsuario[USUARIOS]={"admin","mesero","cocinero"};
 string claveCifrada[USUARIOS]={"7d04nURC","05s529URC","3934n529URC"};
-int rolUsuario[USUARIOS]={1,2,3};
+int rolUsuario[USUARIOS]={1,2,3}; // 1 administrador, 2 mesero, 3 cocinero
 int rolActual=0; // rol del usuario que inicio sesion (0 si nadie ha iniciado)
 string usuarioActual=""; // nombre del usuario que inicio sesion
 int cajaAbierta=0; // pasa a 1 cuando un administrador o mesero abre la caja
@@ -32,10 +30,10 @@ double sumaBilletes, sumaMonedas;
 // productos del menu
 string nombreProducto[PRODUCTOS]={"cocacola","pepsi","seven-up","pizza peperoni mediana","pizza jamon mediana","pizza hawaiana"};
 double precioProducto[PRODUCTOS]={6,6,5,60,55,65};
-int ventasProducto[PRODUCTOS]; // cantidad vendida
+int ventasProducto[PRODUCTOS]; // cantidad vendida en el dia de cada producto
 
 // mesas
-int sillasMesa[MESAS]={2,2,4,4,6,10};
+int sillasMesa[MESAS]={2,2,4,4,6,10}; // para cuantas personas es cada mesa
 int estadoMesa[MESAS]; // 0 liberada, 1 ocupada, 2 reservada
 string nombreReserva[MESAS]; // nombre de quien reservo cada mesa
 int cuentaMesa[MESAS][PRODUCTOS]; // cantidad pedida de cada producto por mesa (la cuenta abierta de cada mesa)
@@ -74,9 +72,7 @@ string cifrarMurcielago(string texto);
 void iniciarSesion();
 int puedeUsarOpcion(int opcion);
 
-// funcion main: repite el login y el menu principal hasta que el administrador finalice el dia
-// (la opcion 6 devuelve 1 cuando se pudo cerrar). Despues del login, si el usuario es administrador
-// o mesero y la caja todavia no esta abierta, se hace la apertura de caja
+
 int main() {
     int opcion;
     int diaTerminado=0; // bandera para terminar el ciclo, pasa a 1 al finalizar el dia
@@ -125,10 +121,7 @@ int main() {
     cout<<"fin del programa, hasta manana!"<<endl;
     return 0;
 }
-// funcion iniciarSesion: pide usuario y contrasena hasta que sean correctos.
-// Anti-tontos: no acepta campos vacios ni con espacios (lo valida pedirPalabra), la contrasena que se escribe
-// se cifra y se compara con la guardada (nunca se guarda la contrasena original), y despues de 3 intentos
-// fallidos el login se bloquea 15 segundos. Al terminar deja el usuario y su rol en usuarioActual y rolActual
+
 void iniciarSesion(){
     int intentos=0; // intentos fallidos seguidos
     int i, posicion;
@@ -191,9 +184,7 @@ string cifrarMurcielago(string texto){
     }
     return resultado;
 }
-// funcion puedeUsarOpcion: devuelve 1 si el usuario actual puede usar la opcion del menu y 0 si no.
-// administrador (1): todas las opciones / mesero (2): opciones 1 a 4 (mesas, ordenes y cobro) /
-// cocinero (3): solo la opcion 5 (cola de cocina)
+
 int puedeUsarOpcion(int opcion){
     if (rolActual==1){
         return 1;
@@ -225,8 +216,7 @@ void disenoMenu(){
     }
     cout<<"0. Cerrar sesion"<<endl;
 }
-// funcion aperturaCaja: pide cuantos billetes y monedas hay en caja al iniciar el dia,
-// los guarda en las variables de la caja actual y en las variables de apertura (para el cierre)
+
 void aperturaCaja() { //apertura de caja
     int opcionApertura;
     do {
@@ -264,8 +254,7 @@ void aperturaCaja() { //apertura de caja
     system("pause");
     system("cls");
 }
-// funcion estadoMesas: muestra la lista simple de las 6 mesas con sus sillas y su estado
-// (si esta reservada muestra el nombre, si esta ocupada muestra la cuenta actual)
+
 void estadoMesas() {
     int i;
     cout<<"---------------------- estado de mesas ------------------------"<<endl;
@@ -281,8 +270,7 @@ void estadoMesas() {
         cout<<endl;
     }
 }
-// funcion reservarMesa: pregunta para cuantas personas es la mesa, muestra solo las mesas
-// liberadas con sillas suficientes, deja elegir una y la pasa a reservada con el nombre del cliente
+
 void reservarMesa(){
     int personas, i, mesaElegida, disponibles=0, mesaValida;
     cout<<"---------------------- reservar mesa ------------------------"<<endl;
@@ -314,9 +302,7 @@ void reservarMesa(){
         }
     }
 }
-// funcion tomarOrden: muestra el menu, pide cuantas unidades de cada producto se agregan a una mesa,
-// las suma a la cuenta de esa mesa (una sola cuenta por mesa), las manda a la cola de cocina
-// como una orden nueva y deja la mesa ocupada
+
 void tomarOrden(){
     int mesa, i, totalProductos=0;
     int nuevoPedido[PRODUCTOS]; // lo que se pide en esta orden
@@ -358,9 +344,7 @@ void tomarOrden(){
         mostrarCuenta(mesa);
     }
 }
-// funcion generarPrecuenta: muestra la cuenta de una mesa ocupada y pregunta si es correcta.
-// Si lo es: aplica un descuento opcional, cobra (efectivo o tarjeta), acumula los valores del dia,
-// genera el archivo .txt de la cuenta final y libera la mesa. Si no, la cuenta sigue abierta.
+
 void generarPrecuenta(){
     int mesa, i, opcion, descuento, metodoPago, pagoRealizado;
     double totalCuentaMesa, totalPagar;
@@ -433,10 +417,7 @@ void generarPrecuenta(){
     estadoMesa[mesa]=0;
     cout<<"la mesa no."<<mesa+1<<" ha sido liberada"<<endl;
 }
-// funcion cobrarEfectivo: pide los billetes y monedas que entrega el cliente, verifica que alcance,
-// calcula el cambio y lo da con lo que haya en caja (de mayor a menor valor).
-// Si se pudo cobrar actualiza la caja y devuelve 1; si el cliente prefiere otra forma de pago
-// devuelve 0 (en ese caso la caja no se modifica)
+
 int cobrarEfectivo(double totalPagar){
     int recibido5, recibido10, recibido20, recibido50, recibido100, recibidoM25, recibidoM50, recibidoM1; // lo que entrega el cliente
     int disp5, disp10, disp20, disp50, disp100, dispM25, dispM50, dispM1; // lo que hay en caja mas lo que entrega el cliente
@@ -567,10 +548,7 @@ void guardarCuenta(int mesa, double total, int descuento, string descripcion, do
     archivo.close();
     cout<<"se genero el archivo "<<nombreCliente<<".txt"<<endl;
 }
-// funcion colaCocina: muestra las ordenes que todavia no se han entregado (mesa y productos)
-// y permite escoger una por su numero para marcarla como entregada; se repite hasta que
-// no queden pendientes o se ingrese 0 para volver al menu
-void colaCocina(){
+
     int i, j, pendientes, orden, ordenValida;
     do{
         pendientes=0;
